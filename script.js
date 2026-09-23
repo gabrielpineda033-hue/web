@@ -1,10 +1,7 @@
 
+// 1. Configuración de Supabase (Tus credenciales reales)
 const supabaseUrl = 'https://ysuxnynwombpnouxoowx.supabase.co'; 
 const supabaseKey = 'sb_publishable_1AgSqjihSfP_H8TUGBvUZw_9aMt9Zz7';
-
-// 1. Configuración de Supabase (Asegúrate de que estas líneas existan)
-const supabaseUrl = 'https://supabase.co';
-const supabaseKey = 'tu-anon-key-de-supabase';
 
 // 2. Creamos el cliente UNA SOLA VEZ y de forma global
 let supabaseClient = null;
@@ -49,5 +46,46 @@ function conectarSupabase() {
 
 // 5. Función para buscar la categoría
 async function buscarCategoria() {
-    // (Tu código de búsqueda que ya corregimos...)
+    if (!supabaseClient) {
+        alert("Primero debes conectarte 🔌");
+        return;
+    }
+
+    const id = document.getElementById('id_categoria').value.trim();
+    const nombre = document.getElementById('nombre_categoria').value.trim();
+
+    if (!id && !nombre) {
+        alert("Ingresa un ID o un Nombre para buscar ⚠️");
+        return;
+    }
+
+    try {
+        let query = supabaseClient.from('categorias').select('*');
+
+        if (id) {
+            query = query.eq('id_categoria', id);
+        }
+        if (nombre) {
+            query = query.ilike('nombre', `%${nombre}%`); 
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            alert("No se encontró ninguna categoría ❌");
+            return;
+        }
+
+        // IMPORTANTE: Asegúrate de que data[0] se use aquí para acceder al primer registro de la lista
+        document.getElementById('id_categoria').value = data[0].id_categoria;
+        document.getElementById('nombre_categoria').value = data[0].nombre;
+        document.getElementById('estado').value = data[0].estado;
+        
+        alert(`✅ Se encontraron ${data.length} resultado(s).`);
+
+    } catch (error) {
+        alert("Error al buscar ❌: " + error.message);
+        console.error("Detalle del error:", error);
+    }
 }
